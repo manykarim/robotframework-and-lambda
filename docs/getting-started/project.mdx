@@ -1,0 +1,59 @@
+# Robot Framework on AWS Lambda
+
+I will explain the setup of a Robot Framework project on AWS Lambda using an existing project.  
+It is parallel test execution project that splits up your test cases into multiple Lambda functions and executes them in parallel.
+
+It will use multiple AWS Ressources:
+
+- [AWS Lambda](https://aws.amazon.com/lambda/) to execute Robot Framework tests and use its API
+- [AWS S3](https://aws.amazon.com/s3/) to store the test cases and the test results
+- [AWS DynamoDB](https://aws.amazon.com/dynamodb/) to store the run status
+- [AWS SQS](https://aws.amazon.com/sqs/) to communicate between the Lambda functions
+- [AWS CloudFormation](https://aws.amazon.com/cloudformation/) to create the AWS Ressources
+
+You can find the sample project [here](https://github.com/manykarim/rf-lambda-executor) and you can clone it with the command below:  
+
+```bash
+git clone https://github.com/manykarim/rf-lambda-executor
+```
+
+It will be featured at [RoboCon 2023](https://robocon.io/) in the my talk [To Infinity and Beyond - Serverless scaling with AWS Lambda](https://robocon.io/#to-infinity-and-beyond---serverless-scaling-with-aws-lambda).
+
+## Project Structure
+
+```bash	
+.
+├── distributor
+│   ├── app.py
+│   ├── __init__.py
+│   ├── Listener
+│   │   ├── DistributorListener.py
+│   │   └── __init__.py
+│   └── requirements.txt
+├── executor
+│   ├── app.py
+│   ├── Dockerfile
+│   ├── __init__.py
+│   └── requirements.txt
+├── LICENSE
+├── merger
+│   ├── app.py
+│   ├── __init__.py
+│   └── requirements.txt
+├── poetry.lock
+├── pyproject.toml
+├── README.md
+├── samconfig.toml
+└── template.yaml
+```
+
+The most important parts are:
+
+- the `distributor` , `executor` and `merger` folders which contain the Lambda functions
+- the `template.yaml` file which contains the CloudFormation stack
+
+## template.yaml
+
+The `template.yaml` file is the main file for the CloudFormation stack. It contains all the AWS Ressources that will be created and the Lambda functions that will be deployed.  
+It is a YAML file using the [SAM Specification](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification.html).
+
