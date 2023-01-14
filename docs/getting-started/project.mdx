@@ -3,7 +3,7 @@
 I will explain the setup of a Robot Framework project on AWS Lambda using an existing project.  
 It is parallel test execution project that splits up your test cases into multiple Lambda functions and executes them in parallel.
 
-It will use multiple AWS Ressources:
+It uses multiple AWS Ressources:
 
 - [AWS Lambda](https://aws.amazon.com/lambda/) to execute Robot Framework tests and use its API
 - [AWS S3](https://aws.amazon.com/s3/) to store the test cases and the test results
@@ -52,8 +52,106 @@ The most important parts are:
 - the `distributor` , `executor` and `merger` folders which contain the Lambda functions
 - the `template.yaml` file which contains the CloudFormation stack
 
-## template.yaml
+### template.yaml
 
 The `template.yaml` file is the main file for the CloudFormation stack. It contains all the AWS Ressources that will be created and the Lambda functions that will be deployed.  
 It is a YAML file using the [SAM Specification](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification.html).
+
+### Lambda Functions
+
+The Lambda functions are located in the `distributor` , `executor` and `merger` folders.
+
+#### Distributor
+The distributor is the first Lambda function that will be executed.  
+It is responsible for splitting up the test cases into smaller chunks and sending them to the executor Lambda function.  
+It is triggered by an HTTP Post request to the API Gateway.  
+
+It will 
+
+- download the test cases from the S3 Bucket `Testsbucket`
+- split up the tests into N small chunks of similar size
+- create a DynamoDB entry for each chunk
+- send each chunk to a SQS queue to the executor Lambda function
+
+The dependencies are defined in the `distributor/requirements.txt` file.
+
+#### Executor
+Is the second Lambda function that will be executed.
+It is responsible for executing the test cases and sending the results to the merger Lambda function.
+It is triggered by a message in the SQS queue.
+
+It will
+
+- download the test cases from the S3 Bucket `Testsbucket`
+- execute the test cases
+- upload the results to the S3 Bucket `Resultsbucket`
+- send the results to the merger Lambda function
+- update the DynamoDB entry
+- check if all chunks are finished and trigger the merger Lambda function
+
+Due to the size of the dependencies (e.g. `robotframework-browser`) the executor Lambda function is deployed as a Docker container.  
+The Dockerfile is located in the `executor` folder.
+
+#### Merger
+Is the third Lambda function that will be executed.
+It is responsible for merging the results from the executor Lambda functions and sending the results to the S3 Bucket `Resultsbucket`.
+It is triggered either by the executor Lambda function or by a HTTP Get request to the API Gateway.
+
+It will
+
+- download the results from the S3 Bucket `Resultsbucket`
+- merge the results using `rebot`
+- upload the results to the S3 Bucket `Resultsbucket` in the folder `final`
+- update the DynamoDB entry
+
+The dependencies are defined in the `merger/requirements.txt` file.
+
+## Build and Deploy
+
+### Prerequisites
+
+- [AWS CLI](https://aws.amazon.com/cli/)
+- [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
+- [Docker](https://www.docker.com/)
+
+### Build
+
+```bash
+sam build
+```
+
+### Deploy
+
+```bash
+sam deploy --guided
+```
+
+## Run
+
+Before you can run the tests you need to upload the test cases to the S3 Bucket `Testsbucket`.
+
+You can do this with the AWS Console or with the AWS CLI.
+
+### Upload Test Cases
+
+#### From AWS Console
+
+#### From AWS CLI
+
+```bash
+aws s3 cp --recursive tests/ s3://<testbucket-name>/<project>/tests
+```
+
+
+### From AWS Console
+
+### From AWS CLI
+
+## Cleanup
+
+```bash
+aws cloudformation delete-stack --stack-name rf-lambda-executor
+```
+
+
 
