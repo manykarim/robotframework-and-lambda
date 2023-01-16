@@ -1,0 +1,114 @@
+---
+sidebar_position: 2
+---
+
+# Build, Deploy and Run
+
+### Prerequisites
+
+- [AWS CLI](https://aws.amazon.com/cli/)
+- [SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-sam-cli-install.html)
+- [Docker](https://www.docker.com/)
+
+### Build
+
+You can build the Lambda Functions using the command 
+
+```bash
+sam build
+```
+
+It will create 
+
+- a `.zip package` for the `distributor` and `merger` function
+- a `Dockerimage` for the `executor` function
+
+Check out the `Dockerfile` in the `executor/` folder and the `requirements.txt` file in the `distributor/` and `merger/` folder for more details about the **dependencies**.
+
+### Deploy
+
+To deploy your Lambda Function using CloudFormation, use the command:
+
+```bash
+sam deploy --guided
+```
+
+It will run a wizard and ask for a final confirmation before deployment.  
+CloudFormation will **keep track** of your already deployed resources and will only **re-deploy the changes**.
+
+
+## Run
+
+Before you can run the tests you need to **upload the test cases** to the S3 Bucket `Testsbucket`.
+
+You can do this with the AWS Console or with the AWS CLI.
+
+The Folder structure in the S3 Bucket `Testsbucket` shall look like that:
+
+```bash
+.
+├── <project-name>
+│   ├── tests
+│   │   ├── <TestSuiteA>.robot
+│   │   ├── <TestSuiteb>.robot
+│   │   └── ...
+│   └── resources
+│       ├── <ResourceA>.resource
+│       ├── <ResourceB>.resource
+│       └── ...
+└── <another-project>
+    ├── tests
+    │   └── ...
+    └── ...
+```
+
+Multiple **Test Projects** (including `Test Suites` inside a `tests/` folder) can be stored on a single `Testsbucket`.
+
+The `Distributor` and `Executor` will download only the required `project` folder (which is passed in the body of a **http post request**).
+
+
+### Upload Test Cases
+
+#### From AWS Console
+
+Either open the [AWS Console](https://aws.amazon.com/) landing page and navigate to `S3`.  
+Or open the [S3 Console](s3.console.aws.amazon.com) page directly.  
+
+Select your `Testsbucket` from the list of S3 Buckets.  
+You can either create the folders for your project manually or upload complete folders via the web page.
+
+#### From AWS CLI
+`aws` can copy singe files or complete folders recursively.  
+To copy a folder `tests/` from your local filesystem to the S3 Bucket you can user the command below:
+
+```bash
+aws s3 cp --recursive tests/ s3://<testbucket-name>/<project>/tests
+```
+
+### Test Run from API Gateway Console
+
+
+### A real run via an HTTP Endpoint
+
+Before you can use the HTTP Endpoint, you need to set up an `API Key` and assign it to a `Usage Plan` and a `Stage`.
+
+When triggering your Lambda Function via the HTTP Endpoint, you need to provide the `API Key` in the `Header` for authentication.
+
+The reason is, that the API Endpoint will be available to the public and should require some authentication.  
+Beside `API Keys` there are also other ways of authentication.  
+
+#### Add API Key and Usage Plan via API Gateway Console
+
+#### Run with curl
+
+#### Run with Postman
+
+
+## Cleanup
+
+```bash
+aws cloudformation delete-stack --stack-name rf-lambda-executor
+```
+
+
+

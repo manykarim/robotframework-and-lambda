@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # Installation
 
 ## Install AWS CLI and SAM CLI
@@ -16,76 +20,3 @@ To complete the next steps, I assume that you have the following prerequisites:
 - Homebrew installed on your local machine (macOS and Linux only)
 - AWS SAM CLI installed on your local machine
 
-## Deploy Hello World application
-
-You can use the AWM SAM CLI to create, build, and deploy a simple Hello World application.
-
-### Create a new application
-
-Create a new application in a new directory.
-
-```bash
-sam init
-```
-
-The SAM CLI command above will prompt you with the following options:
-
-```bash
-Which template source would you like to use?
-        1 - AWS Quick Start Templates
-        2 - Custom Template Location
-```
-Choose 1 and press Enter.
-
-```bash
-Choose an AWS Quick Start application template
-        1 - Hello World Example
-        2 - Multi-step workflow
-        3 - Serverless API
-        4 - Scheduled task
-        5 - Standalone function
-        6 - Data processing
-        7 - Infrastructure event management
-        8 - Serverless Connector Hello World Example
-        9 - Multi-step workflow with Connectors
-        10 - Lambda EFS example
-        11 - Machine Learning
-``` 
-Choose 1 and press Enter.
-
-```bash
-Use the most popular runtime and package type? (Python and zip) [y/N]: y
-
-Would you like to enable X-Ray tracing on the function(s) in your application?  [y/N]: N
-
-Project name [sam-app]: hello-lambda
-```	
-
-1. Enter `y` to select `Python` and `zip` as the most popular runtime and package type.  
-2. Enter `N` to disable X-Ray tracing.  
-3. Enter `hello-lambda` as the project name.
-
-### Build and test the application
-
-Build the application.
-
-```bash
-cd hello-lambda
-sam build
-```
-
-### Deploy the application
-
-Deploy the application.
-
-```bash
-sam deploy --guided
-```
-
-### Test the application
-
-Test the application using the invoke command.
-
-```bash
-sam local invoke HelloWorldFunction --event events/event.json
-```
